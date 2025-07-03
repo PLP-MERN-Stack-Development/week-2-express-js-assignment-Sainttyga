@@ -1,71 +1,45 @@
-// server.js - Starter Express server for Week 2 assignment
+// server.js - Entry point
 
-// Import required modules
+// server.js - Entry point for the Express application
 const express = require('express');
-const bodyParser = require('body-parser');
-const { v4: uuidv4 } = require('uuid');
 
-// Initialize Express app
+// Import necessary modules
+const dotenv = require('dotenv');
+
+// Import routes and middleware
+const productRoutes = require('./routes/products'); // Import product routes
+const logger = require('./middleware/logger'); // Import custom logger middleware
+const auth = require('./middleware/auth'); // Import authentication middleware
+const errorHandler = require('./middleware/errorHandler'); // Import global error handler
+
+// Load environment variables from .env file
+dotenv.config();
+
+// Initialize Express application
 const app = express();
+
+// Set the port from environment variable or default to 3000
 const PORT = process.env.PORT || 3000;
 
-// Middleware setup
-app.use(bodyParser.json());
+// Middleware
+app.use(express.json()); // Parse JSON request bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
+app.use(logger); // Use custom logger middleware for logging requests
+app.use(auth); // Use authentication middleware to protect routes
 
-// Sample in-memory products database
-let products = [
-  {
-    id: '1',
-    name: 'Laptop',
-    description: 'High-performance laptop with 16GB RAM',
-    price: 1200,
-    category: 'electronics',
-    inStock: true
-  },
-  {
-    id: '2',
-    name: 'Smartphone',
-    description: 'Latest model with 128GB storage',
-    price: 800,
-    category: 'electronics',
-    inStock: true
-  },
-  {
-    id: '3',
-    name: 'Coffee Maker',
-    description: 'Programmable coffee maker with timer',
-    price: 50,
-    category: 'kitchen',
-    inStock: false
-  }
-];
-
-// Root route
-app.get('/', (req, res) => {
-  res.send('Welcome to the Product API! Go to /api/products to see all products.');
+// Routes
+app.get('/', (req, res) => { // Root route for the API
+  res.send('Welcome to the Product API!'); // Send a welcome message
 });
+app.use('/api/products', productRoutes); // Use product routes for all product-related operations
 
-// TODO: Implement the following routes:
-// GET /api/products - Get all products
-// GET /api/products/:id - Get a specific product
-// POST /api/products - Create a new product
-// PUT /api/products/:id - Update a product
-// DELETE /api/products/:id - Delete a product
+// Use global error handler to catch and respond to errors
+app.use(errorHandler); 
 
-// Example route implementation for GET /api/products
-app.get('/api/products', (req, res) => {
-  res.json(products);
-});
-
-// TODO: Implement custom middleware for:
-// - Request logging
-// - Authentication
-// - Error handling
-
-// Start the server
+// Start Server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// Export the app for testing purposes
-module.exports = app; 
+// Export the app for testing or further configuration
+module.exports = app;
